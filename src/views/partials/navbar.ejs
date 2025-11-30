@@ -1,0 +1,121 @@
+<h1 class="text-center mb-2 mt-0">Organizacja</h1>
+
+<!-- GÓRNY RZĄD -->
+
+<!-- Powitanie i role -->
+<div class="col-md-4 d-flex">
+  <div class="card p-3 shadow-sm rounded w-100">
+    <% if (user) { %>
+      <h5 class="mb-2">👋 Witaj <%= user.name %>
+          <%= user.surname %>
+      </h5>
+      <p class="mb-1 fw-bold">Twoje role:</p>
+      <div class="mt-1">
+        <% user.friendlyRoles.forEach(role=> { %>
+          <span class="badge bg-primary me-1">
+            <% if(role==='Administrator Główny' ) { %>
+              <i class="bi bi-shield-lock-fill"></i>
+              <% } else if(role==='Dyrektor' ) { %>
+                <i class="bi bi-briefcase-fill"></i>
+                <% } else if(role==='Nauczyciel' ) { %>
+                  <i class="bi bi-person-badge"></i>
+                  <% } else { %>
+                    <i class="bi bi-person-circle"></i>
+                    <% } %>
+                      <%= role %>
+          </span>
+          <% }) %>
+      </div>
+      <% } %>
+  </div>
+</div>
+
+<!-- Specjalizacje -->
+<div class="col-md-4 d-flex">
+  <div class="card p-3 shadow-sm rounded w-100">
+    <p class="fw-bold mb-2">🛠️ Specjalizacje:</p>
+    <% if (user && user.specializations && user.specializations.length> 0) { %>
+      <div class="d-inline-flex flex-wrap gap-1">
+        <% user.specializations.forEach(spec=> { %>
+          <span class="badge bg-info text-dark">
+            <%= spec %>
+          </span>
+          <% }) %>
+      </div>
+      <% } else { %>
+        <span class="text-muted">Brak specjalizacji</span>
+        <% } %>
+  </div>
+</div>
+
+<!-- Etat i placówki -->
+<div class="col-md-4 d-flex">
+  <div class="card p-3 shadow-sm rounded w-100">
+    <p class="fw-bold mb-2">🏫 Etaty i placówki:</p>
+    <% if (user.facilities && user.facilities.length> 0) { %>
+      <div class="d-flex flex-wrap gap-1">
+        <% user.facilities.forEach(fac=> { %>
+          <span class="badge bg-secondary">
+            <%= fac.facilityId?.name || 'Nieznana placówka' %>
+              (<%= fac.fullTimeHours %>h + <%= fac.additionalHours %>h)
+          </span>
+          <% }) %>
+      </div>
+      <% } else { %>
+        <span class="text-muted">Brak danych o etacie</span>
+        <% } %>
+  </div>
+</div>
+
+<!-- DOLNY RZĄD -->
+
+<!-- Godziny pracy -->
+<div class="col-md-4 d-flex">
+  <div class="card p-3 shadow-sm rounded w-100">
+    <p class="fw-bold mb-2">🕒 Godziny pracy:</p>
+    <% if (user.workingHours && user.workingHours.length> 0) { %>
+      <ul class="ps-3 mb-0">
+        <% user.workingHours.forEach(hour=> { %>
+          <li>
+            <%= hour %>
+          </li>
+          <% }) %>
+      </ul>
+      <% } else { %>
+        <span class="text-muted">Brak danych o godzinach</span>
+        <% } %>
+  </div>
+</div>
+
+<!-- Grupy i klasy (ogólne) -->
+<div class="col-md-4 d-flex">
+  <div class="card p-3 shadow-sm rounded w-100">
+    <p class="fw-bold mb-2">👥 Grupy i klasy:</p>
+    <% let anyGroup=false; %>
+      <% if (user.facilities && user.facilities.length> 0) { %>
+        <% user.facilities.forEach(fac=> { %>
+          <% const groups=fac.assignedGroups || []; %>
+            <% if (groups.length> 0) { anyGroup = true; %>
+              <div class="mb-1">
+                <span class="fw-semibold">
+                  <%= fac.facilityId?.name || 'Nieznana placówka' %>:
+                </span>
+                <small>
+                  <%= groups.join(', ') %></small>
+          </div>
+        <% } %>
+      <% }) %>
+      <% if (!anyGroup) { %><span class="text-muted">Brak przypisanych grup</span><% } %>
+    <% } else { %>
+      <span class="text-muted">Brak danych</span>
+    <% } %>
+  </div>
+</div>
+
+<!-- Dzienniki -->
+<div class="col-md-4 d-flex">
+  <div class="card p-3 shadow-sm rounded w-100">
+    <p class="fw-bold mb-2">📘 Dzienniki:</p>
+    <span class="text-muted">Moduł w przygotowaniu...</span>
+  </div>
+</div>

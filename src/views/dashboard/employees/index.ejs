@@ -1,0 +1,168 @@
+<%- include('../../partials/header') %>
+
+<body class="bg-light">
+  <div class="container py-5">
+
+    <div class="row mb-4 g-3 align-items-stretch">
+      <%- include('../../partials/navbar') %>
+    </div>
+
+    <%- include('../../partials/menu') %>
+    <%- include('../../partials/flash') %>
+
+    <div class="card p-4 shadow-sm">
+      <h3 class="mb-4">Pracownicy</h3>
+
+      <!-- GÓRNE OPCJE -->
+      <div class="d-flex justify-content-between flex-wrap gap-2 mb-4">
+        <a href="/dashboard/employees/create" class="btn btn-success">
+          <i class="bi bi-person-plus"></i> Dodaj pracownika
+        </a>
+      </div>
+
+      <!-- WYSZUKIWARKA -->
+      <form class="mb-4" method="GET" action="/dashboard/employees">
+        <div class="row g-2 align-items-end">
+          <!-- Szukanie po imieniu/nazwisku -->
+          <div class="col-md-3">
+            <label for="searchEmployee" class="form-label">Imię lub nazwisko</label>
+            <input type="text" class="form-control" id="searchEmployee" name="name" value="<%= searchQuery %>" placeholder="Szukaj pracownika...">
+          </div>
+          <!-- Filtr po placówce -->
+          <div class="col-md-3">
+            <label for="facilityFilter" class="form-label">Placówka</label>
+            <select class="form-select" id="facilityFilter" name="facility">
+              <option value="">Wszystkie</option>
+              <% facilities.forEach(facility => { %>
+                <option value="<%= facility._id %>" <%= selectedFacility == facility._id ? 'selected' : '' %>>
+                  <%= facility.name %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+          <!-- Filtr po funkcji -->
+          <div class="col-md-2">
+            <label for="roleFilter" class="form-label">Funkcja</label>
+            <select class="form-select" id="roleFilter" name="role">
+              <option value="">Wszystkie</option>
+              <% roles.forEach(role => { %>
+                <option value="<%= role.value %>" <%= selectedRole == role.value ? 'selected' : '' %>>
+                  <%= role.label %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+          <!-- Filtr po statusie konta -->
+          <div class="col-md-2">
+            <label for="statusFilter" class="form-label">Status konta</label>
+            <select class="form-select" id="statusFilter" name="status">
+              <option value="">Wszystkie</option>
+              <option value="active" <%= statusFilter === 'active' ? 'selected' : '' %>>Aktywne</option>
+              <option value="inactive" <%= statusFilter === 'inactive' ? 'selected' : '' %>>Nieaktywne</option>
+            </select>
+          </div>
+          <div class="col-md-1 d-grid">
+            <a href="/dashboard/employees" class="btn btn-outline-secondary">
+              <i class="bi bi-x-circle"></i> Wyczyść
+            </a>
+          </div>
+          <div class="col-md-1 d-grid">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-search"></i> Wyszukaj
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- LISTA PRACOWNIKÓW -->
+      <div id="employee-list">
+        <% if (employees.length > 0) { %>
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover bg-white shadow-sm">
+              <thead class="table-light">
+                <tr>
+                  <th>Imię i nazwisko</th>
+                  <th>Placówki</th>
+                  <th>Funkcje</th>
+                  <th>Specjalizacje</th>
+                  <th>Godziny pracy</th>
+                  <th>Akcje</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% employees.forEach(emp => { %>
+                  <tr>
+                    <td>
+                      <strong><%= emp.fullName %></strong>
+                      <% if (!emp.active) { %>
+                        <span class="badge bg-secondary ms-1">Nieaktywne</span>
+                      <% } %>
+                    </td>
+                    <td>
+                      <% const facs = Array.isArray(emp.facilities) ? emp.facilities.map(f => f.facilityId?.name || 'Nieznana') : []; %>
+                      <%= facs.length > 0 ? facs.join(', ') : 'Brak placówek' %>
+                    </td>
+                    <td>
+                      <% if (emp.roles && emp.roles.length) { %>
+                        <%= emp.roles.map(r => roleLabels[r] || r).join(', ') %>
+                      <% } else { %>
+                        Brak
+                      <% } %>
+                    </td>
+                    <td>
+                      <% if (Array.isArray(emp.specializations) && emp.specializations.length > 0) { %>
+                        <%= emp.specializations.join(', ') %>
+                      <% } else { %>
+                        Brak
+                      <% } %>
+                    </td>
+                    <td>
+                      <% if (Array.isArray(emp.workingHours) && emp.workingHours.length) { %>
+                        <ul class="mb-0 ps-3">
+                          <% emp.workingHours.forEach(h => { %>
+                            <li><%= h %></li>
+                          <% }) %>
+                        </ul>
+                      <% } else { %>
+                        <span class="text-muted">Brak danych</span>
+                      <% } %>
+                    </td>
+                    <td>
+                      <div class="d-grid gap-2">
+                        <a href="/dashboard/employees/<%= emp._id %>" class="btn btn-sm btn-outline-info w-100 py-2">
+                          <i class="bi bi-eye"></i> Podgląd
+                        </a>
+                        <a href="/dashboard/employees/edit/<%= emp._id %>" class="btn btn-sm btn-outline-primary w-100 py-2">
+                          <i class="bi bi-pencil"></i> Edytuj
+                        </a>
+                        <% if (emp.active) { %>
+                          <form method="POST" action="/dashboard/employees/<%= emp._id %>/deactivate" class="d-inline w-100">
+                            <button type="submit" class="btn btn-sm btn-outline-danger w-100 py-2" onclick="return confirm('Na pewno deaktywować to konto?')">
+                              <i class="bi bi-slash-circle"></i> Dezaktywuj
+                            </button>
+                          </form>
+                        <% } else { %>
+                          <form method="POST" action="/dashboard/employees/<%= emp._id %>/activate" class="d-inline w-100">
+                            <button type="submit" class="btn btn-sm btn-outline-success w-100 py-2" onclick="return confirm('Przywrócić konto do aktywnych?')">
+                              <i class="bi bi-arrow-repeat"></i> Aktywuj
+                            </button>
+                          </form>
+                        <% } %>
+                      </div>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } else { %>
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Brak wyników do wyświetlenia.
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../../partials/footer') %>
+</body>

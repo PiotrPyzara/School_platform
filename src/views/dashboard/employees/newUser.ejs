@@ -1,0 +1,173 @@
+<%- include('../../partials/header') %>
+
+<!-- CDN Tagify -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" />
+<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+
+<body class="bg-light">
+  <div class="container py-5">
+    <div class="row mb-4 g-3 align-items-stretch">
+      <%- include('../../partials/navbar') %>
+    </div>
+
+    <%- include('../../partials/menu') %>
+    <%- include('../../partials/flash') %>
+
+    <div class="card p-4 shadow-sm">
+      <h3 class="mb-4">Dodaj pracownika</h3>
+
+      <form action="/dashboard/employees/create" method="POST">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="name" class="form-label">Imię</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+          </div>
+          <div class="col-md-6">
+            <label for="surname" class="form-label">Nazwisko</label>
+            <input type="text" class="form-control" id="surname" name="surname" required>
+          </div>
+        </div>
+
+        <!-- Placówki -->
+        <div class="mb-3">
+          <label for="selectedFacilities" class="form-label">Placówki</label>
+          <select id="selectedFacilities" name="selectedFacilities" class="selectpicker form-control" title="Wybierz placówki" multiple>
+            <% facilities.forEach(facility => { %>
+              <option value="<%= facility._id %>"><%= facility.name %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <!-- Role -->
+        <div class="mb-3">
+          <label for="roles" class="form-label">Role</label>
+          <select id="roles" name="roles" class="selectpicker form-control" title="Wybierz role" multiple>
+            <% roles.forEach(role => { %>
+              <option value="<%= role.value %>"><%= role.label %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <!-- Specjalizacje (Tagify) -->
+        <div class="mb-3">
+          <label for="specializations" class="form-label">Specjalizacje</label>
+          <input id="specializations" name="specializations" class="form-control" placeholder="Wpisz specjalizacje, np. Logopeda, SI" />
+        </div>
+
+        <!-- Godziny (Tagify) -->
+        <div class="mb-3">
+          <label for="workingHours" class="form-label">Godziny pracy</label>
+          <input id="workingHours" name="workingHours" class="form-control" placeholder="Dodaj zakresy godzin, np. 8:00-10:00 - dyżur" />
+        </div>
+
+        <!-- Dynamiczne pola dla wybranych placówek -->
+        <div id="facility-fields"></div>
+
+        <button type="submit" class="btn btn-success">Utwórz</button>
+        <a href="/dashboard/employees" class="btn btn-secondary ms-2">Anuluj</a>
+      </form>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        $('.selectpicker').selectpicker();
+
+        // Zmieniamy na selectedFacilities!
+        const facilitiesSelect = document.getElementById('selectedFacilities');
+        const dynamicFieldsContainer = document.getElementById('facility-fields');
+
+        let facilityData = {}; // Zapamiętane dane
+
+        const collectCurrentValues = () => {
+          facilityData = {}; // Reset danych
+          document.querySelectorAll('.facility-block').forEach(block => {
+            const id = block.dataset.id;
+            const selectedOptions = Array.from(block.querySelector(`#groups-select-${id}`)?.selectedOptions || []).map(opt => opt.value);
+            facilityData[id] = {
+              fullTimeHours: block.querySelector(`[name="facilities[${id}][fullTimeHours]"]`)?.value || '',
+              additionalHours: block.querySelector(`[name="facilities[${id}][additionalHours]"]`)?.value || '',
+              assignedGroups: selectedOptions
+            };
+          });
+        };
+
+        const renderFacilityFields = () => {
+          const selectedOptions = [...facilitiesSelect.selectedOptions];
+          dynamicFieldsContainer.innerHTML = '';
+
+          selectedOptions.forEach(opt => {
+            const id = opt.value;
+            const name = opt.text;
+            const saved = facilityData[id] || {};
+
+            const block = document.createElement('div');
+            block.className = 'card p-3 mb-3 facility-block';
+            block.dataset.id = id;
+
+            block.innerHTML = `
+              <h5>${name}</h5>
+              <div class="mb-2">
+                <label>Etat (Ilość godzin):</label>
+                <input type="number" name="facilities[${id}][fullTimeHours]" class="form-control" value="${saved.fullTimeHours || ''}">
+              </div>
+              <div class="mb-2">
+                <label>Dodatkowe godziny:</label>
+                <input type="number" name="facilities[${id}][additionalHours]" class="form-control" value="${saved.additionalHours || ''}">
+              </div>
+              <div class="mb-2 groups-section d-none" id="groups-section-${id}">
+                <label>Grupy / Klasy:</label>
+                <select name="facilities[${id}][assignedGroups][]" class="selectpicker form-control" id="groups-select-${id}" title="Wybierz grupy / klasy" multiple></select>
+              </div>
+            `;
+
+            dynamicFieldsContainer.appendChild(block);
+            $(block).find('.selectpicker').selectpicker();
+
+            // Pobierz grupy z API
+            fetch(`/api/facilities/${id}/groups`)
+              .then(res => res.json())
+              .then(data => {
+                const select = block.querySelector(`#groups-select-${id}`);
+                const section = block.querySelector(`#groups-section-${id}`);
+
+                data.groups.forEach(group => {
+                  const option = document.createElement('option');
+                  option.value = group;
+                  option.textContent = group;
+                  if (saved.assignedGroups?.includes(group)) option.selected = true;
+                  select.appendChild(option);
+                });
+
+                $(select).selectpicker('refresh');
+                section.classList.remove('d-none');
+              })
+              .catch(err => {
+                console.error(`Błąd pobierania grup dla placówki ${id}:`, err);
+              });
+          });
+        };
+
+        facilitiesSelect.addEventListener('change', () => {
+          collectCurrentValues();
+          renderFacilityFields();
+        });
+
+        // Tagify
+        const specInput = document.querySelector('#specializations');
+        new Tagify(specInput, {
+          whitelist: ['Psycholog'],
+          dropdown: { enabled: 0 }
+        });
+
+        const workingHoursInput = document.querySelector('#workingHours');
+        new Tagify(workingHoursInput, {
+          whitelist: [],
+          dropdown: { enabled: 0 }
+        });
+
+        renderFacilityFields();
+      });
+    </script>
+
+    <%- include('../../partials/footer') %>
+</body>

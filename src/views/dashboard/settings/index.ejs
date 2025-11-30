@@ -1,0 +1,199 @@
+<%- include('../../partials/header') %>
+
+<body class="bg-light">
+  <div class="container py-5">
+    <div class="row mb-4 g-3 align-items-stretch">
+      <%- include('../../partials/navbar') %>
+    </div>
+
+    <%- include('../../partials/menu') %>
+    <%- include('../../partials/flash') %>
+
+    <div class="card p-4 shadow-sm">
+      <h3 class="mb-4">Ustawienia</h3>
+
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        <button class="btn btn-outline-primary setting-tab-btn active" data-target="accountSettings" onclick="toggleSection('accountSettings')">🔐 Zmień hasło</button>
+        <% if (hasAnyRole(['admin', 'headAdmin'])) { %>
+          <button class="btn btn-outline-primary setting-tab-btn" data-target="showMonthCode" onclick="toggleSection('showMonthCode')">📅 Pokaż kod miesięczny</button>
+        <% } %>
+        <% if (hasRole('headAdmin')) { %>
+          <button class="btn btn-outline-primary setting-tab-btn" data-target="editMonthCode" onclick="toggleSection('editMonthCode')">✏️ Zmień kod miesięczny</button>
+          <button class="btn btn-outline-danger setting-tab-btn" data-target="showRootCode" onclick="toggleSection('showRootCode')">🛡️ Pokaż kod root</button>
+          <button class="btn btn-outline-danger setting-tab-btn" data-target="editRootCode" onclick="toggleSection('editRootCode')">✏️ Zmień kod root</button>
+          <button class="btn btn-outline-dark setting-tab-btn" data-target="codesConfig" onclick="toggleSection('codesConfig')">⚙️ Ustawienia kodów</button>
+        <% } %>
+      </div>
+
+      <!-- Zmiana hasła -->
+      <div id="accountSettings" class="collapse-section">
+        <h5>Zmiana hasła</h5>
+        <form method="POST" action="/dashboard/settings/account/password" class="mb-3">
+          <div class="mb-2">
+            <label class="form-label">Aktualne hasło</label>
+            <input type="password" name="currentPassword" class="form-control" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Nowe hasło</label>
+            <input type="password" name="newPassword" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Powtórz nowe hasło</label>
+            <input type="password" name="confirmPassword" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-success">💾 Zapisz nowe hasło</button>
+        </form>
+      </div>
+
+      <% if (hasAnyRole(['admin', 'headAdmin'])) { %>
+        <div id="showMonthCode" class="collapse-section d-none">
+          <h5>Kod miesięczny</h5>
+          <label class="form-label">Aktualny kod</label>
+          <div class="input-group mb-3">
+            <input type="text" class="form-control bg-light" value="<%= currentMonthCode %>" id="monthCodeDisplay" readonly>
+            <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('monthCodeDisplay', this)">📋</button>
+          </div>
+        </div>
+      <% } %>
+
+      <% if (hasRole('headAdmin')) { %>
+        <div id="editMonthCode" class="collapse-section d-none">
+          <h5>Zmień kod miesięczny</h5>
+          <form method="POST" action="/dashboard/settings/platform/month-code">
+            <div class="mb-3">
+              <label class="form-label">Nowy kod</label>
+              <div class="input-group">
+                <input type="text" name="monthCode" id="generatedMonthCode" class="form-control" required>
+                <button type="button" class="btn btn-outline-secondary"
+                  onclick="generateCodeAndFill('generatedMonthCode', <%= settings?.monthlyCode?.length || 6 %>, '<%= settings?.monthlyCode?.useAlphanumeric ? 'true' : 'false' %>')">
+                  🔁 Wygeneruj kod
+                </button>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-warning">💾 Zapisz nowy kod</button>
+          </form>
+        </div>
+
+        <div id="showRootCode" class="collapse-section d-none">
+          <h5>Kod root</h5>
+          <label class="form-label">Aktualny kod root</label>
+          <div class="input-group mb-3">
+            <input type="text" class="form-control bg-light" value="<%= currentRootCode %>" id="rootCodeDisplay" readonly>
+            <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('rootCodeDisplay', this)">📋</button>
+          </div>
+        </div>
+
+        <div id="editRootCode" class="collapse-section d-none">
+          <h5>Zmień kod root</h5>
+          <form method="POST" action="/dashboard/settings/platform/root-code">
+            <div class="mb-3">
+              <label class="form-label">Nowy kod root</label>
+              <div class="input-group">
+                <input type="text" name="rootCode" id="generatedRootCode" class="form-control" required>
+                <button type="button" class="btn btn-outline-secondary"
+                  onclick="generateCodeAndFill('generatedRootCode', <%= settings?.rootCode?.length || 12 %>, '<%= settings?.rootCode?.useAlphanumeric ? 'true' : 'false' %>')">
+                  🔁 Wygeneruj kod
+                </button>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Hasło administratora</label>
+              <input type="password" name="adminPassword" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-danger">💾 Zapisz kod root</button>
+          </form>
+        </div>
+
+        <!-- Uniwersalna konfiguracja wszystkich kodów -->
+        <div id="codesConfig" class="collapse-section d-none">
+          <h5 class="mb-4">Ustawienia kodów dostępu</h5>
+          <form method="POST" action="/dashboard/settings/platform/codes-config">
+            <div class="row g-4">
+              <!-- Kod miesięczny -->
+              <div class="col-md-4">
+                <div class="border rounded shadow-sm p-3 h-100 bg-white">
+                  <h6 class="mb-3">Kod miesięczny</h6>
+                  <label class="form-label">Długość</label>
+                  <input type="number" min="4" max="20" class="form-control mb-2" name="monthlyLength" value="<%= settings?.monthlyCode?.length || 6 %>" required>
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="monthlyAlpha" value="1" <%= settings?.monthlyCode?.useAlphanumeric ? 'checked' : '' %>>
+                    <label class="form-check-label">Litery i cyfry</label>
+                  </div>
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="monthlyAuto" value="1" <%= settings?.monthlyCode?.autoGenerate ? 'checked' : '' %>>
+                    <label class="form-check-label">Auto-generowanie co miesiąc</label>
+                  </div>
+                </div>
+              </div>
+              <!-- Kod root -->
+              <div class="col-md-4">
+                <div class="border rounded shadow-sm p-3 h-100 bg-white">
+                  <h6 class="mb-3">Kod root</h6>
+                  <label class="form-label">Długość</label>
+                  <input type="number" min="6" max="32" class="form-control mb-2" name="rootLength" value="<%= settings?.rootCode?.length || 12 %>" required>
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="rootAlpha" value="1" <%= settings?.rootCode?.useAlphanumeric ? 'checked' : '' %>>
+                    <label class="form-check-label">Litery i cyfry</label>
+                  </div>
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="rootAuto" value="1" <%= settings?.rootCode?.autoGenerate ? 'checked' : '' %>>
+                    <label class="form-check-label">Auto-generowanie</label>
+                  </div>
+                </div>
+              </div>
+              <!-- Kod deaktywacyjny -->
+              <div class="col-md-4">
+                <div class="border rounded shadow-sm p-3 h-100 bg-white">
+                  <h6 class="mb-3">Kod dostępowy/deaktywacyjny</h6>
+                  <label class="form-label">Długość</label>
+                  <input type="number" min="4" max="32" class="form-control mb-2" name="deactivationLength" value="<%= settings?.deactivationCode?.length || 8 %>" required>
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="deactivationAlpha" value="1" <%= settings?.deactivationCode?.useAlphanumeric ? 'checked' : '' %>>
+                    <label class="form-check-label">Litery i cyfry</label>
+                  </div>
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="deactivationAuto" value="1" <%= settings?.deactivationCode?.autoGenerate ? 'checked' : '' %>>
+                    <label class="form-check-label">Auto-generowanie</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-dark mt-4">💾 Zapisz ustawienia</button>
+          </form>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <script>
+    function toggleSection(sectionId) {
+      document.querySelectorAll('.collapse-section').forEach(sec => sec.classList.add('d-none'));
+      document.getElementById(sectionId).classList.remove('d-none');
+      document.querySelectorAll('.setting-tab-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.querySelector(`.setting-tab-btn[data-target="${sectionId}"]`);
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    function copyToClipboard(inputId, btn) {
+      const input = document.getElementById(inputId);
+      navigator.clipboard.writeText(input.value).then(() => {
+        btn.innerText = '✅ Skopiowano!';
+        setTimeout(() => { btn.innerText = '📋'; }, 1500);
+      });
+    }
+
+    // Uniwersalny generator kodów dla różnych pól
+    function generateCodeAndFill(inputId, length, useAlpha) {
+      const charset = useAlpha === 'true'
+        ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+        : '0123456789';
+      let result = '';
+      for (let i = 0; i < length; i++) {
+        result += charset.charAt(Math.floor(Math.random() * charset.length));
+      }
+      document.getElementById(inputId).value = result;
+    }
+  </script>
+
+  <%- include('../../partials/footer') %>
+</body>

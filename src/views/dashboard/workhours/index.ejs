@@ -1,0 +1,40 @@
+<%- include('../../partials/header') %>
+
+<body class="bg-light">
+  <div class="container py-5">
+
+    <div class="row mb-4 g-3 align-items-stretch">
+      <%- include('../../partials/navbar') %>
+    </div>
+
+    <%- include('../../partials/menu') %>
+    <%- include('../../partials/flash') %>
+
+    <div class="card p-4 shadow-sm">
+      <h3 class="mb-4">Godziny pracy</h3>
+      <p>Wybierz opcję:</p>
+      <div class="d-flex gap-3 flex-wrap mb-3">
+        <a href="/dashboard/workhours/me" class="btn btn-outline-primary">
+          <i class="bi bi-person"></i> Moje godziny
+        </a>
+
+        <% if (hasAnyRole(['admin', 'headAdmin', 'director'])) { %>
+          <a href="/dashboard/workhours/add" class="btn btn-outline-success">
+            <i class="bi bi-plus-circle"></i> Wprowadź godziny dla pracownika
+          </a>
+        <% } %>
+        
+        <% /* Przyszłościowo: tylko dla admina/dyrekcji */ %>
+        <% /* if (hasAnyRole(['admin', 'headAdmin', 'director'])) { %>
+          <a href="/dashboard/workhours/all" class="btn btn-outline-dark">
+            <i class="bi bi-list"></i> Lista wszystkich wpisów
+          </a>
+        <% } */ %>
+      </div>
+      <p class="text-muted">Tu sprawdzisz lub wprowadzisz godziny pracy swoje lub innych pracowników.</p>
+    </div>
+
+  </div>
+
+<%- include('../../partials/footer') %>
+</body>

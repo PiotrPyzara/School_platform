@@ -1,0 +1,62 @@
+<%- include('../../partials/header') %>
+<body class="bg-light">
+<div class="container py-5">
+  <div class="row mb-4 g-3 align-items-stretch">
+    <%- include('../../partials/navbar') %>
+  </div>
+  <%- include('../../partials/menu') %>
+  <%- include('../../partials/flash') %>
+
+  <div class="card p-4 shadow-sm">
+    <h4 class="mb-4"><i class="bi bi-calendar-plus me-2"></i>Dodaj godziny pracy</h4>
+
+    <form method="POST" action="/dashboard/workhours/add">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label">Pracownik</label>
+          <select name="userId" class="form-select" required>
+            <% users.forEach(u => { %>
+              <option value="<%= u._id %>"><%= u.name %> <%= u.surname %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Placówka</label>
+          <select name="facilityId" class="form-select" required>
+            <% facilities.forEach(f => { %>
+              <option value="<%= f._id %>"><%= f.name %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Data</label>
+          <input type="date" name="date" class="form-control" required>
+        </div>
+        <div class="col-md-1">
+          <label class="form-label">Od</label>
+          <input type="time" name="startTime" class="form-control" required>
+        </div>
+        <div class="col-md-1">
+          <label class="form-label">Do</label>
+          <input type="time" name="endTime" class="form-control" required>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Typ godzin</label>
+          <select name="hoursType" class="form-select" required>
+            <option value="etatowe">Etatowe</option>
+            <option value="dodatkowe">Dodatkowe</option>
+          </select>
+        </div>
+        <div class="col-md-12 mt-2">
+          <label class="form-label">Notatka</label>
+          <input type="text" name="note" class="form-control" maxlength="150">
+        </div>
+      </div>
+      <div class="mt-4">
+        <button type="submit" class="btn btn-success">💾 Dodaj wpis</button>
+      </div>
+    </form>
+  </div>
+</div>
+<%- include('../../partials/footer') %>
+</body>

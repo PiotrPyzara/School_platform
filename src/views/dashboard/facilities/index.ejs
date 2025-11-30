@@ -1,0 +1,115 @@
+<%- include('../../partials/header') %>
+
+<body class="bg-light">
+  <div class="container py-5">
+
+    <div class="row mb-4 g-3 align-items-stretch">
+      <%- include('../../partials/navbar') %>
+    </div>
+
+    <%- include('../../partials/menu') %>
+    <%- include('../../partials/flash') %>
+
+    <div class="card p-4 shadow-sm">
+      <h3 class="mb-4">Placówki</h3>
+
+      <!-- GÓRNE OPCJE -->
+      <div class="d-flex justify-content-between flex-wrap gap-2 mb-4">
+        <a href="/dashboard/facilities/create" class="btn btn-success">
+          <i class="bi bi-plus-circle"></i> Dodaj placówkę
+        </a>
+      </div>
+
+      <!-- WYSZUKIWARKA -->
+      <form class="mb-4" method="GET" action="/dashboard/facilities">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-5">
+            <label for="searchName" class="form-label">Nazwa placówki</label>
+            <input type="text" class="form-control" id="searchName" name="name" placeholder="Szukaj po nazwie..."
+              value="<%= searchQuery %>" autocomplete="off">
+          </div>
+          <div class="col-md-3">
+            <label for="searchType" class="form-label">Typ placówki</label>
+            <select class="form-select" id="searchType" name="type">
+              <option value="">Wszystkie</option>
+              <option value="preschool" <%=searchType==='preschool' ? 'selected' : '' %>>Przedszkole</option>
+              <option value="school" <%=searchType==='school' ? 'selected' : '' %>>Szkoła</option>
+              <option value="nursery" <%=searchType==='nursery' ? 'selected' : '' %>>Żłobek</option>
+              <option value="counseling" <%=searchType==='counseling' ? 'selected' : '' %>>Poradnia</option>
+            </select>
+          </div>
+          <div class="col-md-2 d-grid">
+            <a href="/dashboard/facilities" class="btn btn-outline-secondary">
+              <i class="bi bi-x-circle"></i> Wyczyść
+            </a>
+          </div>
+          <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-search"></i> Szukaj
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- LISTA PLACÓWEK W TABELI -->
+      <div id="facility-list">
+        <% if (typeof error !=='undefined' && error) { %>
+          <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle"></i>
+            <%= error %>
+          </div>
+        <% } else if (facilities.length === 0) { %>
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Brak wyników do wyświetlenia.
+          </div>
+        <% } else { %>
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover bg-white shadow-sm">
+              <thead class="table-light">
+                <tr>
+                  <th>Nazwa</th>
+                  <th>Typ</th>
+                  <th>Grupy / Klasy</th>
+                  <th>Pracownicy</th>
+                  <th>Akcje</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% facilities.forEach(facility => { %>
+                  <tr>
+                    <td><strong><%= facility.name %></strong></td>
+                    <td>
+                      <% if (facility.type === 'preschool') { %>Przedszkole
+                      <% } else if (facility.type === 'school') { %>Szkoła
+                      <% } else if (facility.type === 'nursery') { %>Żłobek
+                      <% } else if (facility.type === 'counseling') { %>Poradnia
+                      <% } else { %>Inny<% } %>
+                    </td>
+                    <td>
+                      <% if (facility.groups && facility.groups.length > 0) { %>
+                        <%= facility.groups.join(', ') %>
+                      <% } else { %>
+                        <em>Brak grup/klas</em>
+                      <% } %>
+                    </td>
+                    <td><%= facility.workersCount %></td>
+                    <td class="text-nowrap">
+                      <a href="/dashboard/facilities/edit/<%= facility._id %>" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil"></i> Edytuj
+                      </a>
+                      <a href="/dashboard/facilities/delete/<%= facility._id %>" class="btn btn-sm btn-outline-danger ms-1">
+                        <i class="bi bi-trash"></i> Usuń
+                      </a>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../../partials/footer') %>
+</body>

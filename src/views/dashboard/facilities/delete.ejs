@@ -1,0 +1,36 @@
+<%- include('../../partials/header') %>
+
+<body class="bg-light">
+  <div class="container py-5">
+    <div class="row mb-4 g-3 align-items-stretch">
+      <%- include('../../partials/navbar') %>
+    </div>
+
+    <%- include('../../partials/menu') %>
+    <%- include('../../partials/flash') %>
+
+    <div class="card p-4 shadow-sm text-center">
+      <h3 class="mb-3 text-danger">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        Potwierdzenie usunięcia placówki
+      </h3>
+
+      <p class="lead">Czy na pewno chcesz usunąć placówkę <strong><%= facility.name %></strong>?</p>
+      <p class="text-muted mb-4">Tej operacji nie można cofnąć.</p>
+
+      <div class="d-flex justify-content-center gap-3">
+        <form action="/dashboard/facilities/<%= facility._id %>?_method=DELETE" method="POST">
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Tak, usuń
+          </button>
+        </form>
+
+        <a href="/dashboard/facilities" class="btn btn-secondary">
+          <i class="bi bi-arrow-left-circle"></i> Anuluj
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../../partials/footer') %>
+</body>

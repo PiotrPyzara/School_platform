@@ -1,0 +1,160 @@
+<%- include('../../partials/header') %>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" />
+<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+
+<body class="bg-light">
+  <div class="container py-5">
+    <div class="row mb-4 g-3 align-items-stretch">
+      <%- include('../../partials/navbar') %>
+    </div>
+
+    <%- include('../../partials/menu') %>
+    <%- include('../../partials/flash') %>
+
+    <div class="card p-4 shadow-sm">
+      <h3 class="mb-4">Edytuj pracownika</h3>
+
+      <form action="/dashboard/employees/edit/<%= employee._id %>" method="POST">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="name" class="form-label">Imię</label>
+            <input type="text" class="form-control" id="name" name="name" required value="<%= employee.name %>">
+          </div>
+          <div class="col-md-6">
+            <label for="surname" class="form-label">Nazwisko</label>
+            <input type="text" class="form-control" id="surname" name="surname" required value="<%= employee.surname %>">
+          </div>
+        </div>
+
+        <!-- UWAGA! Zmieniony name na selectedFacilities -->
+        <div class="mb-3">
+          <label for="selectedFacilities" class="form-label">Placówki</label>
+          <select id="selectedFacilities" name="selectedFacilities" class="selectpicker form-control" title="Wybierz placówki" multiple>
+            <% facilities.forEach(facility => { %>
+              <option value="<%= facility._id %>"
+                <%= employee.facilities.some(f => f.facilityId && (f.facilityId.equals ? f.facilityId.equals(facility._id) : String(f.facilityId._id) === String(facility._id))) ? 'selected' : '' %>>
+                <%= facility.name %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="roles" class="form-label">Role</label>
+          <select id="roles" name="roles" class="selectpicker form-control" title="Wybierz role" multiple>
+            <% roles.forEach(role => { %>
+              <option value="<%= role.value %>" <%= employee.roles.includes(role.value) ? 'selected' : '' %>><%= role.label %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="specializations" class="form-label">Specjalizacje</label>
+          <input id="specializations" name="specializations" class="form-control" value="<%= employee.specializations.join(', ') %>" />
+        </div>
+
+        <div class="mb-3">
+          <label for="workingHours" class="form-label">Godziny pracy</label>
+          <input id="workingHours" name="workingHours" class="form-control" value="<%= employee.workingHours.join(', ') %>" />
+        </div>
+
+        <div id="facility-fields"></div>
+
+        <button type="submit" class="btn btn-primary">Zapisz</button>
+        <a href="/dashboard/employees" class="btn btn-secondary ms-2">Anuluj</a>
+      </form>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        $('.selectpicker').selectpicker();
+
+        // ZMIANA! Odwołujemy się do selectedFacilities
+        const facilitiesSelect = document.getElementById('selectedFacilities');
+        const dynamicFieldsContainer = document.getElementById('facility-fields');
+
+        const initialData = <%- JSON.stringify(employee.facilities) %>;
+        const facilityData = {};
+
+        initialData.forEach(entry => {
+          if (entry.facilityId && entry.facilityId._id) {
+            facilityData[entry.facilityId._id] = {
+              fullTimeHours: entry.fullTimeHours,
+              additionalHours: entry.additionalHours,
+              assignedGroups: entry.assignedGroups
+            };
+          }
+        });
+
+        const renderFacilityFields = () => {
+          const selectedOptions = [...facilitiesSelect.selectedOptions];
+          dynamicFieldsContainer.innerHTML = '';
+
+          selectedOptions.forEach(opt => {
+            const id = opt.value;
+            const name = opt.text;
+            const saved = facilityData[id] || {};
+
+            const block = document.createElement('div');
+            block.className = 'card p-3 mb-3 facility-block';
+            block.dataset.id = id;
+
+            block.innerHTML = `
+              <h5>${name}</h5>
+              <div class="mb-2">
+                <label>Etat (Ilość godzin):</label>
+                <input type="number" name="facilities[${id}][fullTimeHours]" class="form-control" value="${saved.fullTimeHours || ''}">
+              </div>
+              <div class="mb-2">
+                <label>Dodatkowe godziny:</label>
+                <input type="number" name="facilities[${id}][additionalHours]" class="form-control" value="${saved.additionalHours || ''}">
+              </div>
+              <div class="mb-2 groups-section d-none" id="groups-section-${id}">
+                <label>Grupy / Klasy:</label>
+                <select name="facilities[${id}][assignedGroups][]" class="selectpicker form-control" id="groups-select-${id}" title="Wybierz grupy / klasy" multiple></select>
+              </div>
+            `;
+
+            dynamicFieldsContainer.appendChild(block);
+            $(block).find('.selectpicker').selectpicker();
+
+            fetch(`/api/facilities/${id}/groups`)
+              .then(res => res.json())
+              .then(data => {
+                const select = block.querySelector(`#groups-select-${id}`);
+                const section = block.querySelector(`#groups-section-${id}`);
+
+                data.groups.forEach(group => {
+                  const option = document.createElement('option');
+                  option.value = group;
+                  option.textContent = group;
+                  if (saved.assignedGroups?.includes(group)) option.selected = true;
+                  select.appendChild(option);
+                });
+
+                $(select).selectpicker('refresh');
+                section.classList.remove('d-none');
+              })
+              .catch(err => console.error(err));
+          });
+        };
+
+        facilitiesSelect.addEventListener('change', renderFacilityFields);
+
+        new Tagify(document.querySelector('#specializations'), {
+          whitelist: [],
+          dropdown: { enabled: 0 }
+        });
+
+        new Tagify(document.querySelector('#workingHours'), {
+          whitelist: [],
+          dropdown: { enabled: 0 }
+        });
+
+        renderFacilityFields();
+      });
+    </script>
+
+    <%- include('../../partials/footer') %>
+</body>

@@ -1,0 +1,150 @@
+<%- include('../../partials/header') %>
+
+<%
+  // Oblicz pierwszy i ostatni dzień bieżącego tygodnia (poniedziałek - niedziela)
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const mondayOffset = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek;
+  const sundayOffset = mondayOffset + 6;
+
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + mondayOffset);
+  const sunday = new Date(now);
+  sunday.setDate(now.getDate() + sundayOffset);
+
+  const formatDate = (d) => d.toISOString().split('T')[0];
+  const fromDate = formatDate(monday);
+  const toDate = formatDate(sunday);
+%>
+
+<body class="bg-light">
+  <div class="container py-5">
+    <div class="row mb-4 g-3 align-items-stretch">
+      <%- include('../../partials/navbar') %>
+    </div>
+
+    <%- include('../../partials/menu') %>
+    <%- include('../../partials/flash') %>
+
+    <div class="card p-4 shadow-sm">
+
+      <!-- Nagłówek z przyciskiem powrotu po prawej -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0">
+          <i class="bi bi-person-circle me-2"></i>Szczegóły pracownika
+        </h3>
+        <a href="/dashboard/employees" class="btn btn-outline-dark">
+          <i class="bi bi-arrow-left"></i> Powrót do listy
+        </a>
+      </div>
+
+      <dl class="row">
+        <dt class="col-sm-3">👤 Imię i nazwisko:</dt>
+        <dd class="col-sm-9 fw-semibold"><%= employee.name %> <%= employee.surname %></dd>
+
+        <dt class="col-sm-3">🔑 Login:</dt>
+        <dd class="col-sm-9"><code><%= employee.login %></code></dd>
+
+        <dt class="col-sm-3">📌 Status konta:</dt>
+        <dd class="col-sm-9">
+          <span class="badge <%= employee.active ? 'bg-success' : 'bg-secondary' %>">
+            <%= employee.active ? 'Aktywne' : 'Nieaktywne' %>
+          </span>
+        </dd>
+
+        <dt class="col-sm-3">🛠 Funkcje:</dt>
+        <dd class="col-sm-9">
+          <% if (employee.roles.length) { %>
+            <% employee.roles.forEach(role => { %>
+              <span class="badge bg-primary me-1"><%= roleLabels[role] || role %></span>
+            <% }) %>
+          <% } else { %>
+            <span class="text-muted">Brak</span>
+          <% } %>
+        </dd>
+
+        <dt class="col-sm-3">📚 Specjalizacje:</dt>
+        <dd class="col-sm-9">
+          <% if (employee.specializations.length) { %>
+            <% employee.specializations.forEach(spec => { %>
+              <span class="badge bg-info text-dark me-1"><%= spec %></span>
+            <% }) %>
+          <% } else { %>
+            <span class="text-muted">Brak</span>
+          <% } %>
+        </dd>
+
+        <dt class="col-sm-3">⏰ Godziny pracy:</dt>
+        <dd class="col-sm-9">
+          <% if (employee.workingHours.length) { %>
+            <ul class="mb-0 ps-3">
+              <% employee.workingHours.forEach(h => { %>
+                <li><%= h %></li>
+              <% }) %>
+            </ul>
+          <% } else { %>
+            <span class="text-muted">Brak danych</span>
+          <% } %>
+        </dd>
+
+        <dt class="col-sm-3">🏫 Placówki:</dt>
+        <dd class="col-sm-9">
+          <% if (employee.facilities.length) { %>
+            <% employee.facilities.forEach(fac => { %>
+              <div class="mb-3 p-2 border rounded bg-light">
+                <strong><%= fac.facilityId.name %></strong>
+                <small class="text-muted">(<%= fac.facilityId.type %>)</small><br>
+                <div class="mt-1">
+                  <strong>Grupy/klasy:</strong> <%= fac.assignedGroups.join(', ') || 'Brak' %><br>
+                  <strong>Etat:</strong> <%= fac.fullTimeHours %>h<br>
+                  <strong>Dodatkowe:</strong> <%= fac.additionalHours %>h
+                </div>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <span class="text-muted">Brak przypisań</span>
+          <% } %>
+        </dd>
+      </dl>
+
+      <hr>
+
+      <div class="d-flex gap-3 flex-wrap">
+        <a href="/dashboard/employees/edit/<%= employee._id %>" class="btn btn-outline-primary">
+          <i class="bi bi-pencil"></i> Edytuj dane
+        </a>
+        <form action="/dashboard/employees/<%= employee._id %>/reset-password" method="POST" onsubmit="return confirm('Na pewno zresetować hasło?')" class="d-inline">
+          <button type="submit" class="btn btn-outline-danger">
+            <i class="bi bi-shield-lock"></i> Resetuj hasło
+          </button>
+        </form>
+        <a href="/dashboard/schedule/edit/<%= employee._id %>?weekOffset=0" class="btn btn-outline-warning" target="_blank">
+          <i class="bi bi-pencil-square"></i> Edytuj grafik
+        </a>
+        <a href="/dashboard/schedule/print/<%= employee._id %>?fromDate=<%= fromDate %>&toDate=<%= toDate %>" class="btn btn-outline-secondary" target="_blank">
+          <i class="bi bi-calendar"></i> Zobacz grafik
+        </a>
+        <% if (employee.active) { %>
+          <form action="/dashboard/employees/<%= employee._id %>/deactivate" method="POST" onsubmit="return confirm('Na pewno deaktywować konto?')" class="d-inline">
+            <button type="submit" class="btn btn-outline-warning">
+              <i class="bi bi-person-x"></i> Deaktywuj konto
+            </button>
+          </form>
+        <% } else { %>
+          <form action="/dashboard/employees/<%= employee._id %>/activate" method="POST" onsubmit="return confirm('Aktywować konto?')" class="d-inline">
+            <button type="submit" class="btn btn-outline-success">
+              <i class="bi bi-person-check"></i> Aktywuj konto
+            </button>
+          </form>
+        <% } %>
+        <% if (!employee.active && (user.roles?.includes('admin') || user.roles?.includes('headAdmin'))) { %>
+        <a href="/dashboard/employees/<%= employee._id %>/deactivation-code" class="btn btn-outline-dark">
+          <i class="bi bi-key"></i> Pokaż kod deaktywacyjny
+        </a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../../partials/footer') %>
+</body>

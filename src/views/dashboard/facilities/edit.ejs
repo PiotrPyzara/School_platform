@@ -1,0 +1,63 @@
+<%- include('../../partials/header') %>
+
+<!-- Tagify -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" />
+<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+
+<body class="bg-light">
+  <div class="container py-5">
+    <div class="row mb-4 g-3 align-items-stretch">
+      <%- include('../../partials/navbar') %>
+    </div>
+
+    <%- include('../../partials/menu') %>
+    <%- include('../../partials/flash') %>
+
+    <div class="card p-4 shadow-sm">
+      <h3 class="mb-4"><i class="bi bi-pencil-square me-2"></i>Edytuj placówkę</h3>
+
+      <form action="/dashboard/facilities/edit/<%= facility._id %>?_method=PUT" method="POST">
+        <!-- Nazwa placówki -->
+        <div class="mb-3">
+          <label for="facilityName" class="form-label">Nazwa placówki</label>
+          <input type="text" class="form-control" id="facilityName" name="name" value="<%= facility.name %>" required>
+        </div>
+
+        <!-- Typ placówki -->
+        <div class="mb-3">
+          <label for="facilityType" class="form-label">Typ placówki</label>
+          <select id="facilityType" name="type" class="form-select" required>
+            <option value="preschool" <%= facility.type === 'preschool' ? 'selected' : '' %>>Przedszkole</option>
+            <option value="school" <%= facility.type === 'school' ? 'selected' : '' %>>Szkoła</option>
+            <option value="nursery" <%= facility.type === 'nursery' ? 'selected' : '' %>>Żłobek</option>
+            <option value="counseling" <%= facility.type === 'counseling' ? 'selected' : '' %>>Poradnia</option>
+          </select>
+        </div>
+
+        <!-- Grupy / Klasy -->
+        <div class="mb-3">
+          <label for="groups" class="form-label">Grupy / Klasy</label>
+          <input id="groups" name="groups" class="form-control" value="<%= facility.groups.join(', ') %>" />
+        </div>
+
+        <!-- Przyciski -->
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save me-1"></i>Zapisz zmiany
+          </button>
+          <a href="/dashboard/facilities" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle me-1"></i>Anuluj
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      new Tagify(document.getElementById('groups'));
+    });
+  </script>
+
+  <%- include('../../partials/footer') %>
+</body>

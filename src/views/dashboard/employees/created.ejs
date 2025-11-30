@@ -1,0 +1,28 @@
+<%- include('../../partials/header') %>
+<body class="bg-light">
+<div class="container py-5">
+
+  <!-- Górna sekcja: powitanie, role, placówki, specjalizacje -->
+  <div class="row mb-4 g-3 align-items-stretch">
+    <%- include('../../partials/navbar') %>
+  </div>
+
+  <!-- Menu -->
+  <%- include('../../partials/menu') %>
+  <%- include('../../partials/flash') %>
+
+  <div class="card p-4 shadow-sm">
+    <h3 class="mb-3 text-success">Pracownik został utworzony</h3>
+
+    <p><strong>Imię i nazwisko:</strong> <%= newEmployee.name %> <%= newEmployee.surname %></p>
+    <p><strong>Login:</strong> <code><%= newEmployee.login %></code></p>
+    <p><strong>Hasło tymczasowe:</strong> <code><%= rawPassword %></code></p>
+
+    <div class="mt-4">
+      <a href="/dashboard/employees" class="btn btn-outline-primary">Powrót do listy pracowników</a>
+      <a href="/dashboard/employees/create" class="btn btn-outline-success ms-2">Dodaj kolejnego</a>
+    </div>
+  </div>
+
+</div>
+<%- include('../../partials/footer') %>

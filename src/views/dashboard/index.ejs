@@ -1,0 +1,20 @@
+<%- include('../partials/header') %>
+<body class="bg-light">
+<div class="container py-5">
+
+  <!-- Górna sekcja: powitanie, role, placówki, specjalizacje -->
+  <div class="row mb-4 g-3 align-items-stretch">
+    <%- include('../partials/navbar') %>
+  </div>
+
+  <!-- Menu -->
+  <%- include('../partials/menu') %>
+  <%- include('../partials/flash') %>
+
+  <!-- Dynamiczna zawartość -->
+  <div class="card p-4 shadow-sm">
+    <p class="text-muted mb-0">Wybierz opcję z menu, aby zobaczyć zawartość.</p>
+  </div>
+
+</div>
+<%- include('../partials/footer') %>

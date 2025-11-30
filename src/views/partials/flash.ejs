@@ -1,0 +1,17 @@
+<% if (flash && flash.message) { %>
+  <div class="alert alert-<%= flash.type || 'info' %> alert-dismissible fade show position-relative z-3" role="alert" id="flashMessage">
+    <i class="bi bi-info-circle-fill me-2"></i> <%= flash.message %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zamknij"></button>
+  </div>
+<% } %>
+
+<script>
+  setTimeout(() => {
+    const flash = document.getElementById('flashMessage');
+    if (flash) {
+      flash.classList.remove('show');
+      flash.classList.add('fade');
+      setTimeout(() => flash.remove(), 500);
+    }
+  }, 5000);
+</script>

@@ -1,0 +1,130 @@
+<%- include('../../partials/header') %>
+
+<body class="bg-light">
+  <div class="container py-5">
+    <div class="row mb-4 g-3 align-items-stretch">
+      <%- include('../../partials/navbar') %>
+    </div>
+
+    <%- include('../../partials/menu') %>
+    <%- include('../../partials/flash') %>
+
+    <div class="card p-4 shadow-sm">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Edycja grafiku – <%= teacher.name %> <%= teacher.surname %></h4>
+        <a href="/dashboard/schedule?weekOffset=<%= weekOffset %>" class="btn btn-sm btn-outline-secondary">← Wróć do grafiku</a>
+      </div>
+
+      <!-- Godziny pracy jako tagi -->
+      <div class="mb-4">
+        <strong>Godziny pracy pracownika:</strong>
+        <% if (teacher.workingHours && teacher.workingHours.length) { %>
+          <div>
+            <% teacher.workingHours.forEach(h => { %>
+              <span class="badge rounded-pill bg-primary me-1 mb-1"><%= h %></span>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <span class="text-muted">Brak zdefiniowanych godzin pracy.</span>
+        <% } %>
+      </div>
+
+      <form method="GET" class="row row-cols-lg-auto g-2 align-items-center mb-3" action="">
+        <input type="hidden" name="teacherId" value="<%= teacher._id %>">
+        <div class="col">
+          <input type="date" name="dateInput" class="form-control" value="<%= selectedDate || '' %>">
+        </div>
+        <div class="col">
+          <a href="?teacherId=<%= teacher._id %>" class="btn btn-outline-danger btn-sm">❌ Wyczyść</a>
+          <button type="submit" class="btn btn-outline-primary btn-sm">📅 Wybierz tydzień</button>
+        </div>
+      </form>
+
+      <p class="text-muted mb-3">Zakres: <strong><%= formattedRange %></strong></p>
+
+      <div class="d-flex justify-content-end mb-3">
+        <a href="?teacherId=<%= teacher._id %>&weekOffset=<%= weekOffset - 1 %>" class="btn btn-outline-secondary btn-sm me-2"
+          onclick="return confirmWeekChange()">← Poprzedni tydzień</a>
+        <a href="?teacherId=<%= teacher._id %>&weekOffset=<%= weekOffset + 1 %>" class="btn btn-outline-secondary btn-sm"
+          onclick="return confirmWeekChange()">Następny tydzień →</a>
+      </div>
+
+      <form action="/dashboard/schedule/update?weekOffset=<%= weekOffset %><%= selectedDate ? `&dateInput=${selectedDate}` : '' %>" method="POST">
+        <input type="hidden" name="teacherId" value="<%= teacher._id %>" />
+        <input type="hidden" name="weekOffset" value="<%= weekOffset %>" />
+
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle text-center">
+            <thead class="table-light">
+              <tr>
+                <% daysOfWeek.forEach(day => { %>
+                  <th><%= day.label %></th>
+                <% }) %>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <% daysOfWeek.forEach(day => { %>
+                  <td>
+                    <div class="day-lessons" data-day="<%= day.value %>">
+                      <% const lessons = existingSchedule[day.value] || []; %>
+                      <% lessons.forEach((lesson, idx) => { %>
+                        <div class="mb-3 border p-2 rounded bg-light position-relative">
+                          <input type="hidden" name="lessons[<%= day.value %>][<%= idx %>][_id]" value="<%= lesson._id %>" />
+                          <input type="hidden" name="lessons[<%= day.value %>][<%= idx %>][dayOfWeek]" value="<%= day.value %>" />
+                          <select name="lessons[<%= day.value %>][<%= idx %>][facilityId]" class="form-select mb-1" required>
+                            <% facilities.forEach(f => { %>
+                              <option value="<%= f._id %>" <%= lesson.facilityId?.toString() === f._id.toString() ? 'selected' : '' %>><%= f.name %></option>
+                            <% }) %>
+                          </select>
+                          <input type="text" name="lessons[<%= day.value %>][<%= idx %>][startTime]" class="form-control mb-1" placeholder="Od" value="<%= lesson.startTime %>" required />
+                          <input type="text" name="lessons[<%= day.value %>][<%= idx %>][endTime]" class="form-control mb-1" placeholder="Do" value="<%= lesson.endTime %>" required />
+                          <input type="text" name="lessons[<%= day.value %>][<%= idx %>][lessonDescription]" class="form-control mb-1" placeholder="Opis" value="<%= lesson.lessonDescription %>" required />
+                          <input type="text" name="lessons[<%= day.value %>][<%= idx %>][room]" class="form-control mb-1" placeholder="Sala" value="<%= lesson.room %>" />
+                          <input type="text" name="lessons[<%= day.value %>][<%= idx %>][notes]" class="form-control mb-1" placeholder="Notatki" value="<%= lesson.notes %>" />
+                          <button type="button" class="btn-close position-absolute top-0 end-0" onclick="this.parentElement.remove()"></button>
+                        </div>
+                      <% }) %>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-success mt-2" onclick="addLesson(<%= day.value %>)">➕ Dodaj lekcję</button>
+                  </td>
+                <% }) %>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-4">💾 Zapisz zmiany</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function addLesson(day) {
+      const container = document.querySelector(`[data-day="${day}"]`);
+      const count = container.querySelectorAll('.mb-3').length;
+      const facilities = <%- JSON.stringify(facilities) %>;
+      const facilityOptions = facilities.map(f => `<option value="${f._id}">${f.name}</option>`).join('');
+
+      const template = `
+        <div class="mb-3 border p-2 rounded bg-light position-relative">
+          <input type="hidden" name="lessons[${day}][${count}][dayOfWeek]" value="${day}" />
+          <select name="lessons[${day}][${count}][facilityId]" class="form-select mb-1" required>${facilityOptions}</select>
+          <input type="text" name="lessons[${day}][${count}][startTime]" class="form-control mb-1" placeholder="Od" required />
+          <input type="text" name="lessons[${day}][${count}][endTime]" class="form-control mb-1" placeholder="Do" required />
+          <input type="text" name="lessons[${day}][${count}][lessonDescription]" class="form-control mb-1" placeholder="Opis" required />
+          <input type="text" name="lessons[${day}][${count}][room]" class="form-control mb-1" placeholder="Sala" />
+          <input type="text" name="lessons[${day}][${count}][notes]" class="form-control mb-1" placeholder="Notatki" />
+          <button type="button" class="btn-close position-absolute top-0 end-0" onclick="this.parentElement.remove()"></button>
+        </div>`;
+
+      container.insertAdjacentHTML('beforeend', template);
+    }
+
+    function confirmWeekChange() {
+      return confirm("Uwaga! Przejście do innego tygodnia spowoduje utratę niezapisanych zmian. Kontynuować?");
+    }
+  </script>
+
+  <%- include('../../partials/footer') %>
+</body>

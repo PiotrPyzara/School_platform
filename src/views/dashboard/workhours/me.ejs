@@ -1,0 +1,74 @@
+<%- include('../../partials/header') %>
+<body class="bg-light">
+<div class="container py-5">
+  <div class="row mb-4 g-3 align-items-stretch">
+    <%- include('../../partials/navbar') %>
+  </div>
+  <%- include('../../partials/menu') %>
+  <%- include('../../partials/flash') %>
+
+  <div class="card p-4 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h4 class="mb-0"><i class="bi bi-clock-history me-2"></i>Moje godziny pracy</h4>
+      <form class="d-flex gap-2" method="get">
+        <select name="month" class="form-select form-select-sm">
+          <% for (let m = 1; m <= 12; m++) { %>
+            <option value="<%= m %>" <%= m === month ? 'selected' : '' %>><%= m %></option>
+          <% } %>
+        </select>
+        <select name="year" class="form-select form-select-sm">
+          <% for (let y = year - 2; y <= year + 1; y++) { %>
+            <option value="<%= y %>" <%= y === year ? 'selected' : '' %>><%= y %></option>
+          <% } %>
+        </select>
+        <button type="submit" class="btn btn-outline-primary btn-sm">Filtruj</button>
+      </form>
+    </div>
+
+    <% if (hours.length === 0) { %>
+      <p class="text-muted">Brak wpisów godzin w wybranym miesiącu.</p>
+    <% } else { %>
+      <div class="table-responsive mb-3">
+        <table class="table table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Data</th>
+              <th>Placówka</th>
+              <th>Od</th>
+              <th>Do</th>
+              <th>Typ</th>
+              <th>Ilość godzin</th>
+              <th>Notatka</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% hours.forEach(h => { %>
+              <tr>
+                <td><%= h.date.toISOString().slice(0,10) %></td>
+                <td><%= h.facilityId?.name || '' %></td>
+                <td><%= h.startTime %></td>
+                <td><%= h.endTime %></td>
+                <td><span class="badge <%= h.hoursType === 'etatowe' ? 'bg-primary' : 'bg-info text-dark' %>"><%= h.hoursType %></span></td>
+                <td><%= h.hours %></td>
+                <td><%= h.note %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h6>Podsumowanie:</h6>
+        <ul class="mb-0">
+          <% Object.keys(summary).forEach(type => { %>
+            <li>
+              <span class="badge <%= type === 'etatowe' ? 'bg-primary' : 'bg-info text-dark' %>"><%= type %></span>:
+              <strong><%= summary[type] %> godz.</strong>
+            </li>
+          <% }) %>
+        </ul>
+      </div>
+    <% } %>
+  </div>
+</div>
+<%- include('../../partials/footer') %>
+</body>

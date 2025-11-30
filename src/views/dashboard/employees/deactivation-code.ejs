@@ -1,0 +1,36 @@
+<%- include('../../partials/header') %>
+
+<body class="bg-light">
+  <div class="container py-5">
+    <div class="row mb-4 g-3 align-items-stretch">
+      <%- include('../../partials/navbar') %>
+    </div>
+    <%- include('../../partials/menu') %>
+    <%- include('../../partials/flash') %>
+
+    <div class="card p-4 shadow-sm">
+      <h3 class="mb-4"><i class="bi bi-key me-2"></i>Kod deaktywacyjny</h3>
+      
+      <p class="mb-3">
+        Kod dostępu do konta <strong><%= employee.name %> <%= employee.surname %></strong> to:
+      </p>
+      <div class="alert alert-info">
+        <code class="fs-5"><%= deactivationCode %></code>
+      </div>
+
+      <p class="text-muted">
+        Ten kod jest widoczny tylko teraz i nie będzie ponownie dostępny po przeładowaniu strony.
+      </p>
+
+      <form action="/dashboard/employees/<%= employee._id %>/deactivation-code/reset" method="POST" class="mt-4">
+        <button type="submit" class="btn btn-outline-warning w-100">
+          <i class="bi bi-arrow-clockwise"></i> Wygeneruj nowy kod
+        </button>
+      </form>
+      <a href="/dashboard/employees/<%= employee._id %>" class="btn btn-primary w-100 mt-2">
+        <i class="bi bi-arrow-left-circle"></i> Powrót do szczegółów pracownika
+      </a>
+    </div>
+  </div>
+  <%- include('../../partials/footer') %>
+</body>

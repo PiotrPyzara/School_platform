@@ -1,0 +1,64 @@
+<%- include('../../partials/header') %>
+
+<!-- Tagify -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" />
+<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+
+<body class="bg-light">
+  <div class="container py-5">
+
+    <div class="row mb-4 g-3 align-items-stretch">
+      <%- include('../../partials/navbar') %>
+    </div>
+
+    <%- include('../../partials/menu') %>
+    <%- include('../../partials/flash') %>
+
+    <div class="card p-4 shadow-sm">
+      <h3 class="mb-4">Dodaj placówkę</h3>
+
+      <form action="/dashboard/facilities/create" method="POST">
+        <!-- Nazwa -->
+        <div class="mb-3">
+          <label for="facilityName" class="form-label">Nazwa placówki</label>
+          <input type="text" class="form-control" id="facilityName" name="name" placeholder="Wpisz nazwę placówki" required>
+        </div>
+
+        <!-- Typ placówki -->
+        <div class="mb-3">
+          <label for="facilityType" class="form-label">Typ placówki</label>
+          <select id="facilityType" name="type" class="form-select" required>
+            <option value="" disabled selected>Wybierz typ</option>
+            <option value="preschool">Przedszkole</option>
+            <option value="school">Szkoła</option>
+            <option value="nursery">Żłobek</option>
+            <option value="counseling">Poradnia</option>
+          </select>
+        </div>
+
+        <!-- Grupy / Klasy -->
+        <div class="mb-3">
+          <label for="groups" class="form-label">Grupy / Klasy</label>
+          <input id="groups" name="groups" class="form-control" placeholder="np. Grupa A, 1A, Poradnia 3" />
+        </div>
+
+        <!-- Przycisk -->
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Dodaj placówkę
+          </button>
+          <a href="/dashboard/facilities" class="btn btn-secondary">Anuluj</a>
+        </div>
+      </form>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      new Tagify(document.getElementById('groups'));
+    });
+  </script>
+
+  <%- include('../../partials/footer') %>
+</body>

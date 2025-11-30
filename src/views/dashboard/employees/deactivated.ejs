@@ -1,0 +1,39 @@
+<%- include('../../partials/header') %>
+
+<body class="bg-light">
+  <div class="container py-5">
+    <div class="row mb-4 g-3 align-items-stretch">
+      <%- include('../../partials/navbar') %>
+    </div>
+
+    <%- include('../../partials/menu') %>
+    <%- include('../../partials/flash') %>
+
+    <div class="card p-4 shadow-sm">
+      <h3 class="mb-4"><i class="bi bi-person-x me-2"></i>Konto zostało zdezaktywowane</h3>
+
+      <p class="mb-3">
+        Dostępowy kod reaktywacyjny dla użytkownika <strong><%= employee.name %> <%= employee.surname %></strong> to:
+      </p>
+
+      <div class="alert alert-info">
+        <code class="fs-5"><%= accessCode %></code>
+      </div>
+
+      <p class="text-muted">
+        Ten kod jest widoczny tylko teraz i nie będzie ponownie dostępny po przeładowaniu strony. Zapisz go lub przekaż administratorowi, który będzie chciał zalogować się na konto zdezaktywowane.
+      </p>
+
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <a href="/dashboard/employees/<%= employee._id %>" class="btn btn-primary">
+          <i class="bi bi-arrow-left-circle"></i> Powrót do szczegółów pracownika
+        </a>
+        <a href="/dashboard/employees" class="btn btn-outline-secondary">
+          <i class="bi bi-list"></i> Powrót do listy pracowników
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../../partials/footer') %>
+</body>

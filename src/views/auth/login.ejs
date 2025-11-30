@@ -1,0 +1,33 @@
+<%- include('../partials/public-head') %>
+<body class="bg-light">
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-md-5">
+        <h1 class="text-center mb-5"><%= appTitle %></h1>
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h3 class="text-center mb-4">Logowanie</h3>
+            <% if (error) { %>
+              <div class="alert alert-danger"><%= error %></div>
+            <% } %>
+            <form action="/login" method="POST">
+              <div class="mb-3">
+                <label for="login" class="form-label">Login</label>
+                <input type="text" class="form-control" id="login" name="login" required>
+              </div>
+              <div class="mb-3">
+                <label for="password" class="form-label">Hasło</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+              </div>
+              <div class="mb-3">
+                <label for="authCode" class="form-label">Kod autoryzacyjny</label>
+                <input type="text" class="form-control" id="authCode" name="authCode" required>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Zaloguj się</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<%- include('../../views/partials/public-footer') %>

@@ -1,0 +1,195 @@
+<%- include('../../partials/header') %>
+
+<body class="bg-light">
+  <div class="container py-5">
+    <div class="row mb-4 g-3 align-items-stretch">
+      <%- include('../../partials/navbar') %>
+    </div>
+    <%- include('../../partials/menu') %>
+    <%- include('../../partials/flash') %>
+
+    <div class="card p-4 shadow-sm">
+
+      <!-- Nagłówek + tygodnie -->
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h4 class="mb-0"><%= isOwnView ? 'Mój grafik' : 'Grafik tygodniowy' %></h4>
+        <div>
+          <a href="?weekOffset=<%= weekOffset - 1 %><%= selectedDate ? `&dateInput=${selectedDate}` : '' %><%= isOwnView ? '&isOwnView=1' : '' %>" class="btn btn-outline-secondary btn-sm me-2">← Poprzedni tydzień</a>
+          <a href="?weekOffset=<%= weekOffset + 1 %><%= selectedDate ? `&dateInput=${selectedDate}` : '' %><%= isOwnView ? '&isOwnView=1' : '' %>" class="btn btn-outline-secondary btn-sm">Następny tydzień →</a>
+        </div>
+      </div>
+
+      <!-- Filtry i wydruk – TYLKO DLA ADMINA -->
+      <% if (!isOwnView) { %>
+        <div class="row align-items-center mb-3 g-2">
+          <div class="col-12 col-md">
+            <form class="row row-cols-lg-auto g-3 align-items-center" method="GET" action="">
+              <input type="hidden" name="weekOffset" value="<%= weekOffset %>">
+              <% if (selectedDate) { %>
+                <input type="hidden" name="dateInput" value="<%= selectedDate %>">
+              <% } %>
+              <div class="col">
+                <input type="text" name="search" value="<%= search || '' %>" class="form-control" placeholder="Imię lub nazwisko">
+              </div>
+              <div class="col">
+                <select name="facilities" class="selectpicker form-control" title="Placówki" multiple data-live-search="true">
+                  <% allFacilities.forEach(f => { %>
+                    <option value="<%= f._id %>" <%= selectedFacilities.includes(f._id.toString()) ? 'selected' : '' %>>
+                      <%= f.name %>
+                    </option>
+                  <% }) %>
+                </select>
+              </div>
+              <div class="col">
+                <input type="date" name="dateInput" class="form-control" value="<%= selectedDate || '' %>" />
+              </div>
+              <div class="col d-flex gap-2">
+                <a href="?weekOffset=0" class="btn btn-outline-danger">❌ Wyczyść</a>
+                <button type="submit" class="btn btn-outline-primary">🔍 Filtruj</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- PRZYCISK "MÓJ GRAFIK" dla nauczyciela-admina -->
+      <% if (!isOwnView && userIsTeacher) { %>
+        <div class="mb-3">
+          <a href="/dashboard/schedule?isOwnView=1<%= selectedDate ? `&dateInput=${selectedDate}` : '' %><%= weekOffset ? `&weekOffset=${weekOffset}` : '' %>" class="btn btn-outline-primary btn-sm">
+            👤 Mój grafik
+          </a>
+        </div>
+      <% } %>
+      <!-- PRZYCISK "WSZYSCY NAUCZYCIELE" dla admina będąc w trybie własnego grafiku -->
+      <% if (isOwnView && isAdmin) { %>
+        <div class="mb-3">
+          <a href="/dashboard/schedule" class="btn btn-outline-dark btn-sm">
+            👥 Wszyscy nauczyciele
+          </a>
+        </div>
+      <% } %>
+
+      <!-- PRZYCISK DRUKUJ – dostępny ZAWSZE -->
+      <div class="mb-3 d-flex justify-content-end">
+        <%
+          const printUrl = new URLSearchParams();
+          if (weekOffset) printUrl.append('weekOffset', weekOffset);
+          if (selectedDate) printUrl.append('dateInput', selectedDate);
+          if (!isOwnView && search) printUrl.append('search', search);
+          if (!isOwnView && selectedFacilities.length > 0) {
+            selectedFacilities.forEach(f => printUrl.append('facilities', f));
+          }
+          if (isOwnView) printUrl.append('isOwnView', '1');
+        %>
+        <a
+          href="/dashboard/schedule/print?<%= printUrl.toString() %>"
+          target="_blank"
+          class="btn btn-outline-dark d-flex align-items-center"
+          style="min-width: 100px;"
+        >
+          <i class="bi bi-printer fs-6 me-2"></i>
+          <span>Drukuj</span>
+        </a>
+      </div>
+
+      <p class="text-muted mb-4">Zakres: <strong><%= formattedRange %></strong></p>
+
+      <% if (teachers.length === 0) { %>
+        <p class="text-muted">Brak danych do wyświetlenia.</p>
+      <% } else { %>
+        <% teachers.forEach(teacher => { %>
+          <div class="mb-5">
+            <h5 class="border-bottom pb-2 mb-1 d-flex flex-wrap justify-content-between align-items-center">
+              <span>
+                <%= teacher.name %> <%= teacher.surname %>
+              </span>
+              <span class="d-flex flex-wrap gap-2">
+                <%
+                  const singlePrintUrl = new URLSearchParams();
+                  singlePrintUrl.append('fromDate', fromDate);
+                  singlePrintUrl.append('toDate', toDate);
+                  if (isOwnView) singlePrintUrl.append('isOwnView', '1');
+                %>
+                <a
+                  href="/dashboard/schedule/print/<%= teacher._id %>?<%= singlePrintUrl.toString() %>"
+                  target="_blank"
+                  class="btn btn-outline-dark btn-sm"
+                >
+                  <i class="bi bi-printer"></i> Zbiorczy
+                </a>
+                <% if (isAdmin) { %>
+                  <a href="/dashboard/schedule/edit/<%= teacher._id %>?weekOffset=<%= weekOffset %><%= selectedDate ? `&dateInput=${selectedDate}` : '' %><%= isOwnView ? '&isOwnView=1' : '' %>" class="btn btn-sm btn-outline-warning">✏️ Edytuj grafik</a>
+                <% } %>
+              </span>
+            </h5>
+
+            <div class="working-hours-bar mb-3" style="font-size:0.92em; color:#555;">
+              <i class="bi bi-clock"></i>
+              <span class="working-hours-label" style="font-weight:500; margin-right:0.25em;">Godziny pracy:</span>
+              <%
+                let hours = teacher.workingHours;
+                if (typeof hours === 'string') hours = [hours];
+                if (Array.isArray(hours) && hours.length && hours.some(h => h && h.trim() !== '')) { 
+              %>
+                <%= hours.filter(h => h && h.trim() !== '').join(', ') %>
+              <% } else { %>
+                <span class="text-muted">brak danych</span>
+              <% } %>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-bordered align-middle text-center">
+                <thead class="table-light">
+                  <tr>
+                    <% Object.keys(weekDays).forEach(dayNum => { %>
+                      <th><%= weekDays[dayNum] %></th>
+                    <% }) %>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <% Object.keys(weekDays).forEach(dayNum => { %>
+                      <td>
+                        <% const lessons = teacher.schedule[dayNum] || []; %>
+                        <% if (lessons.length === 0) { %>
+                          <span class="text-muted">Brak</span>
+                        <% } else { %>
+                          <% lessons.forEach(lesson => { %>
+                            <div class="mb-2 text-start">
+                              <strong><%= lesson.startTime %> - <%= lesson.endTime %></strong><br>
+                              <i class="bi bi-info-circle me-1"></i><strong class="text-dark">Opis:</strong> <%= lesson.lessonDescription %><br>
+                              <i class="bi bi-building me-1"></i><strong class="text-dark">Placówka:</strong> <%= lesson.facilityId?.name || 'Nieznana' %><br>
+                              <% if (lesson.room) { %>
+                                <i class="bi bi-door-open me-1"></i><strong class="text-dark">Sala:</strong> <%= lesson.room %><br>
+                              <% } %>
+                              <% if (lesson.notes) { %>
+                                <i class="bi bi-card-text me-1"></i><strong class="text-dark">Notatka:</strong> <%= lesson.notes %>
+                              <% } %>
+                            </div>
+                          <% }) %>
+                        <% } %>
+                      </td>
+                    <% }) %>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </div>
+
+  <% if (!isOwnView) { %>
+    <!-- Selectpicker (tylko dla admina) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/js/bootstrap-select.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/css/bootstrap-select.min.css" />
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        $('.selectpicker').selectpicker();
+      });
+    </script>
+  <% } %>
+
+  <%- include('../../partials/footer') %>
+</body>

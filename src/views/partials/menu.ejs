@@ -1,0 +1,28 @@
+<!-- Menu jako card -->
+<div class="card p-3 shadow-sm mb-4">
+  <div class="d-flex justify-content-center gap-3 flex-wrap align-items-center">
+
+    <!-- Strona główna: widoczna zawsze -->
+    <a href="/dashboard" class="btn btn-outline-primary <%= currentView === 'dashboard' ? 'active' : '' %>">Strona główna</a>
+
+    <!-- Grafik: widoczny dla każdego -->
+    <a href="/dashboard/schedule" class="btn btn-outline-primary <%= currentView === 'schedule' ? 'active' : '' %>">Grafik</a>
+
+    <!-- Godziny pracy: dostępne dla wszystkich
+    <a href="/dashboard/workhours" class="btn btn-outline-primary <%= currentView === 'working-hours' ? 'active' : '' %>">Godziny pracy</a> -->
+
+    <% if (hasAnyRole(['admin', 'director', 'headAdmin'])) { %>
+      <!-- Pracownicy: tylko dla admina, dyrektora, headAdmin -->
+      <a href="/dashboard/employees" class="btn btn-outline-primary <%= currentView === 'employees' ? 'active' : '' %>">Pracownicy</a>
+      <!-- Placówki: tylko dla admina, dyrektora, headAdmin -->
+      <a href="/dashboard/facilities" class="btn btn-outline-primary <%= currentView === 'facilities' ? 'active' : '' %>">Placówki</a>
+    <% } %>
+
+    <!-- Ustawienia: dostępne dla każdego zalogowanego -->
+    <a href="/dashboard/settings" class="btn btn-outline-primary <%= currentView === 'settings' ? 'active' : '' %>">Ustawienia</a>
+
+    <form action="/logout" method="POST" class="m-0">
+      <button type="submit" class="btn btn-danger">Wyloguj</button>
+    </form>
+  </div>
+</div>
