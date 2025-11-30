@@ -12,6 +12,25 @@ Built with scalability and extensibility in mind, this project aims to provide a
 
 ---
 
+## 🎬 Demo Video
+
+Below are presentation videos showcasing the full behavior of the platform.
+
+▶ **Platforma szkolna – Film pokazowy #1**  
+[![Watch #1](https://img.youtube.com/vi/https://youtu.be/GVOWLCVwGSk/hqdefault.jpg)](https://youtu.be/https://youtu.be/GVOWLCVwGSk)
+
+▶ **Platforma szkolna – Film pokazowy #2**  
+[![Watch #2](https://img.youtube.com/vi/https://youtu.be/BUUqMIMQrtI/hqdefault.jpg)](https://youtu.be/https://youtu.be/BUUqMIMQrtI)
+
+▶ **Platforma szkolna – Film pokazowy #3**  
+[![Watch #3](https://img.youtube.com/vi/https://youtu.be/txIyen2PrxI/hqdefault.jpg)](https://youtu.be/https://youtu.be/txIyen2PrxI)
+
+> 🎥 Each video demonstrates the platform in action, including real user flow from login to functionality overview.  
+> All videos are meant to show the system as a whole and illustrate real usage scenarios.
+
+---
+
+
 ## 🔍 Key Features
 
 - 🔐 **Secure login** with password + monthly rotating authorization code  
